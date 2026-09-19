@@ -18,7 +18,7 @@ function BlogsContent() {
   return (
     <>
       {/* Hero Banner */}
-      <section className="relative flex h-48 items-center justify-center overflow-hidden bg-primary-dark">
+      <section className="relative flex h-56 items-center justify-center overflow-hidden bg-primary-dark md:h-64">
         {bannerImage && (
           <Image
             src={bannerImage}
@@ -30,9 +30,14 @@ function BlogsContent() {
           />
         )}
         <div className="absolute inset-0 bg-black/50" />
-        <h1 className="relative z-10 text-4xl font-bold text-white">
-          {activeCategory === "All" ? "All Blogs" : activeCategory}
-        </h1>
+        <div className="relative z-10 px-4 text-center">
+          <h1 className="text-4xl font-bold text-white">
+            {activeCategory === "All" ? "All Blogs" : activeCategory}
+          </h1>
+          <p className="mt-3 text-base text-white/85">
+            Explore blogs from different categories.
+          </p>
+        </div>
       </section>
 
       {/* Category Filters */}

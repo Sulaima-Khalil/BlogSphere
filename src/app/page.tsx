@@ -51,7 +51,6 @@ export default function HomePage() {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">All Blogs</h2>
-            <p className="mt-1 text-sm text-gray-600">Explore blogs from different categories.</p>
           </div>
           <Link
             href="/blogs"
