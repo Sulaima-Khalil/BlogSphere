@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Upload, X, CheckCircle2, AlertCircle, ShieldAlert } from "lucide-react";
@@ -12,7 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getAllPosts, saveCustomPost, updateCustomPost } from "@/lib/data";
 import { Post } from "@/lib/types";
 
-export default function CreatePostPage() {
+function CreatePostForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
@@ -261,6 +261,22 @@ export default function CreatePostPage() {
         </div>
       </div>
     </section>
+  );
+}
+
+export default function CreatePostPage() {
+  return (
+    <Suspense
+      fallback={
+        <section className="container-custom py-16 text-center">
+          <div className="mx-auto max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+            <p className="text-sm text-gray-600">Loading post editor...</p>
+          </div>
+        </section>
+      }
+    >
+      <CreatePostForm />
+    </Suspense>
   );
 }
 
