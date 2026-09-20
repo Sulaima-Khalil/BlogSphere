@@ -152,7 +152,7 @@ export const posts: Post[] = [
     excerpt: "A sneak peek at what's coming next to BlogSphere.",
     content: `<p>This is a draft post.</p>`,
     featuredImage:
-      "https://images.unsplash.com/photo-1498050108027-c4d27f4b94f0?w=800&h=500&fit=crop",
+      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=500&fit=crop",
     category: "Technology",
     tags: ["announcement"],
     author: authors.sarah,

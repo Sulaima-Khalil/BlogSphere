@@ -21,6 +21,22 @@ const PRESET_AVATARS = [
   "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop",
 ];
 
+const DEFAULT_POST_IMAGE = "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=500&fit=crop";
+
+function ProfilePostImage({ src, alt }: { src: string; alt: string }) {
+  const [imgSrc, setImgSrc] = useState(src);
+  return (
+    <Image
+      src={imgSrc || DEFAULT_POST_IMAGE}
+      alt={alt}
+      width={80}
+      height={60}
+      onError={() => setImgSrc(DEFAULT_POST_IMAGE)}
+      className="rounded-lg object-cover h-16 w-24 bg-gray-100 shrink-0"
+    />
+  );
+}
+
 export default function ProfilePage() {
   const { user, updateProfile } = useAuth();
   const [activeNav, setActiveNav] = useState<"posts" | "saved" | "settings">("posts");
@@ -120,13 +136,7 @@ export default function ProfilePage() {
                       key={post.id}
                       className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
                     >
-                      <Image
-                        src={post.featuredImage}
-                        alt={post.title}
-                        width={80}
-                        height={60}
-                        className="rounded-lg object-cover h-16 w-24"
-                      />
+                      <ProfilePostImage src={post.featuredImage} alt={post.title} />
                       <div className="flex-1">
                         <div className="mb-1 flex items-center gap-2">
                           <h3 className="font-semibold text-gray-900">{post.title}</h3>
@@ -173,13 +183,7 @@ export default function ProfilePage() {
                     key={post.id}
                     className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
                   >
-                    <Image
-                      src={post.featuredImage}
-                      alt={post.title}
-                      width={80}
-                      height={60}
-                      className="rounded-lg object-cover h-16 w-24"
-                    />
+                    <ProfilePostImage src={post.featuredImage} alt={post.title} />
                     <div className="flex-1">
                       <div className="mb-1 flex items-center gap-2">
                         <h3 className="font-semibold text-gray-900">{post.title}</h3>
