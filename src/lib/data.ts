@@ -315,6 +315,32 @@ export function saveCustomPost(post: Post): void {
   }
 }
 
+export function updateCustomPost(post: Post): void {
+  if (typeof window === "undefined") return;
+  try {
+    const existingJson = localStorage.getItem("blogsphere_custom_posts");
+    const existing: Post[] = existingJson ? JSON.parse(existingJson) : [];
+    const filtered = existing.filter((p) => p.id !== post.id && p.slug !== post.slug);
+    localStorage.setItem("blogsphere_custom_posts", JSON.stringify([post, ...filtered]));
+  } catch (e) {
+    console.error("Failed to update custom post in localStorage", e);
+  }
+}
+
+export function deleteCustomPost(postId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const existingJson = localStorage.getItem("blogsphere_custom_posts");
+    if (!existingJson) return;
+
+    const existing: Post[] = JSON.parse(existingJson);
+    const filtered = existing.filter((post) => post.id !== postId);
+    localStorage.setItem("blogsphere_custom_posts", JSON.stringify(filtered));
+  } catch (e) {
+    console.error("Failed to delete custom post from localStorage", e);
+  }
+}
+
 export function getPostBySlug(slug: string): Post | undefined {
   const all = getAllPosts();
   return all.find((p) => p.slug === slug);

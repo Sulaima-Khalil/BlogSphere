@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FileText, Users, MessageSquare, Plus, Trash2, Eye, Edit3 } from "lucide-react";
-import { posts as initialPosts, users, comments } from "@/lib/data";
+import { deleteCustomPost, getAllPosts, users, comments } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 import Table from "@/components/ui/Table";
 import Badge from "@/components/ui/Badge";
@@ -12,9 +12,14 @@ import { Post, User } from "@/lib/types";
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<"posts" | "users" | "comments">("posts");
-  const [postsList, setPostsList] = useState<Post[]>(initialPosts);
+  const [postsList, setPostsList] = useState<Post[]>([]);
+
+  useEffect(() => {
+    setPostsList(getAllPosts());
+  }, []);
 
   const handleDeletePost = (id: string) => {
+    deleteCustomPost(id);
     setPostsList((prev) => prev.filter((p) => p.id !== id));
   };
 

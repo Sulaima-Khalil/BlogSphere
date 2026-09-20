@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { getUserPosts, posts } from "@/lib/data";
+import { deleteCustomPost, getUserPosts, posts } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 import ProfileSidebar from "@/components/profile/ProfileSidebar";
 import Badge from "@/components/ui/Badge";
@@ -42,6 +42,7 @@ export default function ProfilePage() {
   const [activeNav, setActiveNav] = useState<"posts" | "saved" | "settings">("posts");
   const [activeTab, setActiveTab] = useState<"Published" | "Draft">("Published");
   const [saveMessage, setSaveMessage] = useState(false);
+  const [postVersion, setPostVersion] = useState(0);
 
   // Form states
   const [name, setName] = useState(user?.name || "Sarah Johnson");
@@ -62,8 +63,13 @@ export default function ProfilePage() {
     );
   }
 
-  const userPosts = getUserPosts("1", activeTab);
+  const userPosts = getUserPosts(user.id, activeTab);
   const savedPosts = posts.slice(0, 2);
+
+  const handleDeletePost = (postId: string) => {
+    deleteCustomPost(postId);
+    setPostVersion((prev) => prev + 1);
+  };
 
   // Handle local image file upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,6 +159,13 @@ export default function ProfilePage() {
                         >
                           Edit
                         </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePost(post.id)}
+                          className="text-sm font-medium text-red-600 hover:underline"
+                        >
+                          Delete
+                        </button>
                         {post.status === "Published" && (
                           <Link
                             href={`/blog/${post.slug}`}

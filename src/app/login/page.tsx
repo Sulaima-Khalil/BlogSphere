@@ -20,8 +20,10 @@ export default function LoginPage() {
     event.preventDefault();
     setErrorMessage("");
 
-    const targetEmail = email.trim() || (role === "Admin" ? "admin@blogsphere.com" : "user@blogsphere.com");
-    const targetPassword = password.trim() || (role === "Admin" ? "admin123" : "password123");
+    const targetEmail = email.trim();
+    // || (role === "Admin" ? "admin@blogsphere.com" : "user@blogsphere.com");
+    const targetPassword = password.trim();
+    // || (role === "Admin" ? "admin123" : "password123");
 
     const res = login(targetEmail, targetPassword, role);
 

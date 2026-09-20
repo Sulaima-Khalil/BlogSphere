@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Edit, Trash2, Eye, Plus } from "lucide-react";
-import { getAllPosts } from "@/lib/data";
+import { deleteCustomPost, getAllPosts } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 import Table from "@/components/ui/Table";
 import Badge from "@/components/ui/Badge";
@@ -16,6 +16,12 @@ export default function AdminPostsPage() {
   useEffect(() => {
     setPostsList(getAllPosts());
   }, []);
+
+  const handleDeletePost = (id: string) => {
+    deleteCustomPost(id);
+    setPostsList((prev) => prev.filter((post) => post.id !== id));
+  };
+
   return (
     <div>
       <div className="mb-8 flex items-center justify-between">
@@ -64,7 +70,11 @@ export default function AdminPostsPage() {
                 >
                   <Edit className="h-4 w-4" />
                 </Link>
-                <button className="rounded p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-600">
+                <button
+                  type="button"
+                  onClick={() => handleDeletePost(post.id)}
+                  className="rounded p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-600"
+                >
                   <Trash2 className="h-4 w-4" />
                 </button>
                 {post.status === "Published" && (

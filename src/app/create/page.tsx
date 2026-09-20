@@ -1,19 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Upload, X, CheckCircle2, AlertCircle, ShieldAlert } from "lucide-react";
 import { categories } from "@/lib/utils";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import RichTextEditor from "@/components/posts/RichTextEditor";
 import { useAuth } from "@/context/AuthContext";
-import { saveCustomPost } from "@/lib/data";
+import { getAllPosts, saveCustomPost, updateCustomPost } from "@/lib/data";
 import { Post } from "@/lib/types";
 
 export default function CreatePostPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
 
   const [title, setTitle] = useState("");
@@ -22,6 +23,29 @@ export default function CreatePostPage() {
   const [tagInput, setTagInput] = useState("");
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const editSlug = searchParams.get("edit");
+    if (!editSlug || !user) {
+      setEditingPostId(null);
+      return;
+    }
+
+    const existingPost = getAllPosts().find(
+      (post) => post.slug === editSlug && (post.author.id === user.id || post.author.email === user.email)
+    );
+
+    if (!existingPost) {
+      setEditingPostId(null);
+      return;
+    }
+
+    setEditingPostId(existingPost.id);
+    setTitle(existingPost.title);
+    setCategory(existingPost.category);
+    setTags(existingPost.tags.length ? existingPost.tags : ["react", "web", "tutorial"]);
+  }, [searchParams, user]);
 
   // Auth Guard: Block non-logged in users
   if (!user) {
@@ -77,13 +101,15 @@ export default function CreatePostPage() {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)+/g, "") || `post-${Date.now()}`;
 
+    const existingPost = editingPostId ? getAllPosts().find((post) => post.id === editingPostId) : null;
+
     const newPost: Post = {
-      id: `custom-${Date.now()}`,
-      slug: generatedSlug,
+      id: existingPost?.id ?? `custom-${Date.now()}`,
+      slug: existingPost?.slug ?? generatedSlug,
       title: title.trim(),
       excerpt: title.trim() + " - Read more on BlogSphere.",
-      content: `<p>${title.trim()}</p><p>Welcome to this new story on BlogSphere! Thank you for reading.</p>`,
-      featuredImage: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=500&fit=crop",
+      content: existingPost?.content ?? `<p>${title.trim()}</p><p>Welcome to this new story on BlogSphere! Thank you for reading.</p>`,
+      featuredImage: existingPost?.featuredImage ?? "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=500&fit=crop",
       category: category,
       tags: tags,
       author: {
@@ -92,25 +118,30 @@ export default function CreatePostPage() {
         avatar: user.avatar,
         email: user.email,
       },
-      publishedAt: new Date().toISOString().split("T")[0],
-      commentCount: 0,
+      publishedAt: existingPost?.publishedAt ?? new Date().toISOString().split("T")[0],
+      commentCount: existingPost?.commentCount ?? 0,
       status: isDraft ? "Draft" : "Published",
-      featured: true,
+      featured: existingPost?.featured ?? true,
     };
 
-    // Persist to localStorage
-    saveCustomPost(newPost);
+    if (existingPost) {
+      updateCustomPost(newPost);
+    } else {
+      saveCustomPost(newPost);
+    }
 
     setNotification({
       type: "success",
-      message: isDraft
-        ? "Draft saved successfully! You can view it in your profile."
-        : "Post published successfully! Redirecting to All Blogs...",
+      message: existingPost
+        ? "Post updated successfully!"
+        : isDraft
+          ? "Draft saved successfully! You can view it in your profile."
+          : "Post published successfully! Redirecting to All Blogs...",
     });
 
     setTimeout(() => {
       setIsSubmitting(false);
-      router.push(isDraft ? "/profile" : "/blogs");
+      router.push(existingPost ? "/profile" : isDraft ? "/profile" : "/blogs");
     }, 1500);
   };
 
