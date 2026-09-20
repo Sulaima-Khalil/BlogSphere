@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Search, Menu, X } from "lucide-react";
-import { useState } from "react";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
+import { Search, Menu, X, PlusCircle, User, LogOut, ShieldCheck, ChevronDown } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import Button from "@/components/ui/Button";
+import { useAuth } from "@/context/AuthContext";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -15,7 +17,29 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
+
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setUserDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    setUserDropdownOpen(false);
+    router.push("/login");
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
@@ -39,7 +63,7 @@ export default function Navbar() {
               key={link.href}
               href={link.href}
               className={`text-sm font-medium transition-colors hover:text-primary ${
-                pathname === link.href ? "text-primary" : "text-gray-600"
+                pathname === link.href ? "text-primary font-semibold" : "text-gray-600"
               }`}
             >
               {link.label}
@@ -51,12 +75,86 @@ export default function Navbar() {
           <Link
             href="/search"
             className="rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-primary"
+            title="Search articles"
           >
             <Search className="h-5 w-5" />
           </Link>
-          <Link href="/login">
-            <Button size="sm">Login</Button>
+
+          <Link href="/create">
+            <Button size="sm" variant="outline" className="flex items-center gap-1.5">
+              <PlusCircle className="h-4 w-4" />
+              <span>Create</span>
+            </Button>
           </Link>
+
+          {user ? (
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                className="flex items-center gap-2 rounded-full border border-gray-200 p-1 pr-3 hover:bg-gray-50 transition-colors"
+              >
+                <Image
+                  src={user.avatar}
+                  alt={user.name}
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+                <span className="text-sm font-medium text-gray-800 max-w-[100px] truncate">
+                  {user.name.split(" ")[0]}
+                </span>
+                <ChevronDown className="h-4 w-4 text-gray-500" />
+              </button>
+
+              {userDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 rounded-xl border border-gray-100 bg-white p-2 shadow-lg z-50">
+                  <div className="border-b border-gray-100 px-3 py-2">
+                    <p className="font-semibold text-gray-900 text-sm">{user.name}</p>
+                    <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    <span className="mt-1 inline-block rounded bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                      {user.role}
+                    </span>
+                  </div>
+
+                  <div className="py-1">
+                    <Link
+                      href="/profile"
+                      onClick={() => setUserDropdownOpen(false)}
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      <User className="h-4 w-4 text-gray-500" />
+                      <span>My Profile</span>
+                    </Link>
+
+                    {user.role === "Admin" && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        <ShieldCheck className="h-4 w-4 text-blue-500" />
+                        <span>Admin Panel</span>
+                      </Link>
+                    )}
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-1">
+                    <button
+                      onClick={handleLogout}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link href="/login">
+              <Button size="sm">Login</Button>
+            </Link>
+          )}
         </div>
 
         <button
@@ -70,6 +168,22 @@ export default function Navbar() {
 
       {mobileOpen && (
         <div className="border-t border-gray-100 bg-white px-4 py-4 md:hidden">
+          {user && (
+            <div className="mb-4 flex items-center gap-3 border-b border-gray-100 pb-3">
+              <Image
+                src={user.avatar}
+                alt={user.name}
+                width={40}
+                height={40}
+                className="h-10 w-10 rounded-full object-cover"
+              />
+              <div>
+                <p className="font-semibold text-gray-900">{user.name}</p>
+                <p className="text-xs text-gray-500">{user.email}</p>
+              </div>
+            </div>
+          )}
+
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -80,13 +194,45 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          <div className="mt-4 flex gap-3">
-            <Link href="/search" className="flex-1" onClick={() => setMobileOpen(false)}>
-              <Button variant="outline" className="w-full">Search</Button>
-            </Link>
-            <Link href="/login" className="flex-1" onClick={() => setMobileOpen(false)}>
-              <Button className="w-full">Login</Button>
-            </Link>
+
+          {user && (
+            <>
+              <Link
+                href="/profile"
+                className="block py-2 text-sm font-medium text-gray-600 hover:text-primary"
+                onClick={() => setMobileOpen(false)}
+              >
+                My Profile
+              </Link>
+              {user.role === "Admin" && (
+                <Link
+                  href="/admin"
+                  className="block py-2 text-sm font-medium text-blue-600"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Admin Panel
+                </Link>
+              )}
+            </>
+          )}
+
+          <div className="mt-4">
+            {user ? (
+              <Button
+                variant="outline"
+                className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                onClick={() => {
+                  setMobileOpen(false);
+                  handleLogout();
+                }}
+              >
+                Logout
+              </Button>
+            ) : (
+              <Link href="/login" className="w-full" onClick={() => setMobileOpen(false)}>
+                <Button className="w-full">Login</Button>
+              </Link>
+            )}
           </div>
         </div>
       )}

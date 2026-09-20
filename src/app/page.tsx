@@ -1,9 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Search } from "lucide-react";
 import { getFeaturedPosts } from "@/lib/data";
 import PostCard from "@/components/posts/PostCard";
-import Button from "@/components/ui/Button";
+import HeroSearch from "@/components/home/HeroSearch";
 
 export default function HomePage() {
   const featuredPosts = getFeaturedPosts();
@@ -30,19 +29,7 @@ export default function HomePage() {
             Explore insightful articles on technology, lifestyle, programming,
             and more from our community of writers.
           </p>
-          <form action="/search" className="mx-auto flex max-w-xl gap-2">
-            <div className="relative flex-1">
-              <input
-                type="search"
-                name="q"
-                placeholder="Search articles..."
-                className="w-full rounded-lg border-0 px-5 py-3.5 pr-12 text-gray-900 shadow-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <Button type="submit" size="lg" className="px-6">
-              <Search className="h-5 w-5" />
-            </Button>
-          </form>
+          <HeroSearch />
         </div>
       </section>
 

@@ -6,6 +6,7 @@ import { getPostBySlug, getCommentsByPostId } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 import Badge from "@/components/ui/Badge";
 import CommentSection from "@/components/posts/CommentSection";
+import BlogPostActions from "@/components/posts/BlogPostActions";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -48,7 +49,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           {post.title}
         </h1>
 
-        <div className="mb-8 flex items-center gap-4 border-b border-gray-200 pb-6">
+        <div className="flex items-center gap-4 border-b border-gray-200 pb-6">
           <Image
             src={post.author.avatar}
             alt={post.author.name}
@@ -67,6 +68,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </div>
           </div>
         </div>
+
+        {/* Action Bar: Read Time, Like, Save, Share */}
+        <BlogPostActions content={post.content} initialLikes={24} />
 
         <div
           className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-li:text-gray-700"

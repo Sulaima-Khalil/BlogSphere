@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { AuthProvider } from "@/context/AuthContext";
 
 export default function ClientLayout({
   children,
@@ -13,10 +14,10 @@ export default function ClientLayout({
   const isAdmin = pathname.startsWith("/admin");
 
   return (
-    <>
+    <AuthProvider>
       {!isAdmin && <Navbar />}
       <main className="min-h-screen">{children}</main>
       {!isAdmin && <Footer />}
-    </>
+    </AuthProvider>
   );
 }

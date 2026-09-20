@@ -1,11 +1,27 @@
 "use client";
 
+import { useState } from "react";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
 import Button from "@/components/ui/Button";
-import { Mail, MessageCircle } from "lucide-react";
+import { Mail, MessageCircle, CheckCircle2 } from "lucide-react";
 
 export default function ContactPage() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (name && email && message) {
+      setSubmitted(true);
+      setName("");
+      setEmail("");
+      setMessage("");
+    }
+  };
+
   return (
     <section className="container-custom py-16">
       <div className="mx-auto max-w-5xl">
@@ -16,12 +32,54 @@ export default function ContactPage() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[1fr_0.7fr]">
-          <form className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8" onSubmit={(e) => e.preventDefault()}>
-            <Input label="Name" type="text" placeholder="Your name" required />
-            <Input label="Email" type="email" placeholder="you@example.com" required />
-            <Textarea label="Message" rows={6} placeholder="Your message..." required />
-            <Button type="submit" size="lg">Send Message</Button>
-          </form>
+          <div className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
+            {submitted ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <CheckCircle2 className="mb-4 h-12 w-12 text-green-500" />
+                <h3 className="text-xl font-bold text-gray-900">Thank you for your message!</h3>
+                <p className="mt-2 text-sm text-gray-600">
+                  We have received your message and will respond within 24 hours.
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-6"
+                  onClick={() => setSubmitted(false)}
+                >
+                  Send another message
+                </Button>
+              </div>
+            ) : (
+              <form className="space-y-6" onSubmit={handleSubmit}>
+                <Input
+                  label="Name"
+                  type="text"
+                  placeholder="Your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+                <Input
+                  label="Email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <Textarea
+                  label="Message"
+                  rows={6}
+                  placeholder="Your message..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  required
+                />
+                <Button type="submit" size="lg" className="w-full md:w-auto">
+                  Send Message
+                </Button>
+              </form>
+            )}
+          </div>
 
           <aside className="rounded-2xl bg-primary-dark p-8 text-white shadow-sm">
             <MessageCircle className="mb-5 h-8 w-8 text-white/80" />

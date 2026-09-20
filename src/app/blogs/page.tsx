@@ -8,12 +8,15 @@ import { categories } from "@/lib/utils";
 import PostCardList from "@/components/posts/PostCardList";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 function BlogsContent() {
   const searchParams = useSearchParams();
+  const { siteSettings } = useAuth();
   const activeCategory = searchParams.get("category") || "All";
-  const filteredPosts = getPostsByCategory(activeCategory);
-  const bannerImage = filteredPosts[0]?.featuredImage;
+  const allFiltered = getPostsByCategory(activeCategory);
+  const displayPosts = allFiltered.slice(0, siteSettings.postsPerPage || 10);
+  const bannerImage = displayPosts[0]?.featuredImage;
 
   return (
     <>
@@ -61,8 +64,8 @@ function BlogsContent() {
 
         {/* Post List */}
         <div className="space-y-6">
-          {filteredPosts.length > 0 ? (
-            filteredPosts.map((post) => (
+          {displayPosts.length > 0 ? (
+            displayPosts.map((post) => (
               <PostCardList key={post.id} post={post} />
             ))
           ) : (

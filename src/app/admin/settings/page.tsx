@@ -1,135 +1,137 @@
 "use client";
 
-import { FormEvent, ReactNode, useState } from "react";
-import { Bell, Globe2, MessageSquare, Settings } from "lucide-react";
-import Input from "@/components/ui/Input";
-import Textarea from "@/components/ui/Textarea";
-import Button from "@/components/ui/Button";
+import { useState } from "react";
+import { Settings, Bell, MessageSquareDashed, CheckCircle2 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function AdminSettingsPage() {
-  const [commentsEnabled, setCommentsEnabled] = useState(true);
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [saved, setSaved] = useState(false);
+  const { siteSettings, updateSiteSettings } = useAuth();
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
-  function handleSave(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSaved(true);
-  }
+  const handleSaveSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 3000);
+  };
 
   return (
-    <div className="w-full max-w-none">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="mt-1 text-sm text-gray-600">Manage your blog preferences and notifications.</p>
+    <div className="space-y-6 w-full max-w-none">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Admin Settings</h1>
+        <p className="mt-1 text-sm text-gray-500">Manage site publishing preferences, notifications, and reader permissions.</p>
       </div>
 
-      <form className="space-y-8" onSubmit={handleSave}>
-        <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="mb-6 flex items-start gap-3">
-            <div className="rounded-lg bg-primary/10 p-2.5 text-primary"><Globe2 className="h-5 w-5" /></div>
+      {saveSuccess && (
+        <div className="flex items-center gap-2 rounded-xl bg-green-50 p-4 text-sm font-medium text-green-800 border border-green-200">
+          <CheckCircle2 className="h-5 w-5 text-green-600" />
+          <span>Settings saved successfully! Changes are live across the site.</span>
+        </div>
+      )}
+
+      <form onSubmit={handleSaveSettings} className="space-y-6">
+        {/* Publishing Preferences Card */}
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-6">
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+              <Settings className="h-5 w-5" />
+            </div>
             <div>
-              <h2 className="font-semibold text-gray-900">Site Details</h2>
-              <p className="mt-1 text-sm text-gray-500">Update the information readers see about your blog.</p>
+              <h2 className="text-lg font-bold text-gray-900">Publishing Preferences</h2>
+              <p className="text-sm text-gray-500">Control how content and reader interaction work.</p>
             </div>
           </div>
-          <div className="grid gap-5 md:grid-cols-2">
-            <Input label="Site name" defaultValue="BlogSphere" required />
-            <Input label="Contact email" type="email" defaultValue="hello@blogsphere.com" required />
-            <div className="md:col-span-2">
-              <Textarea
-                label="Site description"
-                rows={3}
-                defaultValue="Discover insightful articles on technology, lifestyle, programming, design, and business."
-                required
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Posts per page</label>
+            <select
+              value={siteSettings.postsPerPage}
+              onChange={(e) => updateSiteSettings({ postsPerPage: Number(e.target.value) })}
+              className="w-full max-w-xs rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            >
+              <option value={5}>5 posts</option>
+              <option value={10}>10 posts</option>
+              <option value={15}>15 posts</option>
+              <option value={20}>20 posts</option>
+            </select>
+          </div>
+
+          {/* Allow comments Toggle Box */}
+          <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-5">
+            <div>
+              <h3 className="font-medium text-gray-900">Allow comments</h3>
+              <p className="text-sm text-gray-500">Let readers leave comments on published posts.</p>
+            </div>
+
+            <button
+              type="button"
+              role="switch"
+              aria-checked={siteSettings.allowComments}
+              onClick={() => updateSiteSettings({ allowComments: !siteSettings.allowComments })}
+              className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                siteSettings.allowComments ? "bg-[#006644]" : "bg-gray-300"
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                  siteSettings.allowComments ? "translate-x-5" : "translate-x-0"
+                }`}
               />
-            </div>
+            </button>
           </div>
-        </section>
+        </div>
 
-        <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="mb-6 flex items-start gap-3">
-            <div className="rounded-lg bg-blue-100 p-2.5 text-blue-600"><Settings className="h-5 w-5" /></div>
+        {/* Notifications Card */}
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-6">
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
+              <Bell className="h-5 w-5" />
+            </div>
             <div>
-              <h2 className="font-semibold text-gray-900">Publishing Preferences</h2>
-              <p className="mt-1 text-sm text-gray-500">Control how content and reader interaction work.</p>
+              <h2 className="text-lg font-bold text-gray-900">Notifications</h2>
+              <p className="text-sm text-gray-500">Choose when to receive admin updates.</p>
             </div>
           </div>
-          <div className="space-y-5">
-            <label className="block max-w-xs">
-              <span className="mb-1.5 block text-sm font-medium text-gray-700">Posts per page</span>
-              <select defaultValue="10" className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-                <option value="6">6 posts</option>
-                <option value="10">10 posts</option>
-                <option value="12">12 posts</option>
-              </select>
-            </label>
-            <Toggle
-              checked={commentsEnabled}
-              onChange={setCommentsEnabled}
-              title="Allow comments"
-              description="Let readers leave comments on published posts."
-            />
-          </div>
-        </section>
 
-        <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="mb-6 flex items-start gap-3">
-            <div className="rounded-lg bg-violet-100 p-2.5 text-violet-600"><Bell className="h-5 w-5" /></div>
-            <div>
-              <h2 className="font-semibold text-gray-900">Notifications</h2>
-              <p className="mt-1 text-sm text-gray-500">Choose when to receive admin updates.</p>
+          {/* Email notifications Toggle Box */}
+          <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-5">
+            <div className="flex items-start gap-3">
+              <MessageSquareDashed className="h-5 w-5 text-gray-400 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-gray-900">Email notifications</h3>
+                <p className="text-sm text-gray-500">Receive an email when a new comment is submitted.</p>
+              </div>
             </div>
-          </div>
-          <Toggle
-            checked={emailNotifications}
-            onChange={setEmailNotifications}
-            title="Email notifications"
-            description="Receive an email when a new comment is submitted."
-            icon={<MessageSquare className="h-4 w-4 text-gray-400" />}
-          />
-        </section>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-          <Button type="submit" size="lg" className="w-full sm:w-auto">Save Changes</Button>
-          {saved && <p className="text-sm font-medium text-green-600">Settings saved successfully.</p>}
+            <button
+              type="button"
+              role="switch"
+              aria-checked={siteSettings.emailNotifications}
+              onClick={() => updateSiteSettings({ emailNotifications: !siteSettings.emailNotifications })}
+              className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                siteSettings.emailNotifications ? "bg-[#006644]" : "bg-gray-300"
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                  siteSettings.emailNotifications ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
+        {/* Save Changes Button */}
+        <div>
+          <button
+            type="submit"
+            className="rounded-lg bg-[#006644] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#004d33] transition-colors"
+          >
+            Save Changes
+          </button>
         </div>
       </form>
-    </div>
-  );
-}
-
-function Toggle({
-  checked,
-  onChange,
-  title,
-  description,
-  icon,
-}: {
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  title: string;
-  description: string;
-  icon?: ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-5 rounded-lg border border-gray-100 p-4">
-      <div className="flex items-start gap-3">
-        {icon}
-        <div>
-          <p className="text-sm font-medium text-gray-900">{title}</p>
-          <p className="mt-1 text-sm text-gray-500">{description}</p>
-        </div>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        aria-label={title}
-        onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${checked ? "bg-primary" : "bg-gray-300"}`}
-      >
-        <span className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-transform ${checked ? "translate-x-6" : "translate-x-1"}`} />
-      </button>
     </div>
   );
 }
