@@ -71,17 +71,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Initialize registered users & settings in localStorage if not already present
   useEffect(() => {
     const existingUsers = localStorage.getItem("blogsphere_registered_users");
+    const demoAccounts = DEFAULT_ACCOUNTS.map((account) => ({ ...account }));
+
     if (!existingUsers) {
-      localStorage.setItem("blogsphere_registered_users", JSON.stringify(DEFAULT_ACCOUNTS));
+      localStorage.setItem("blogsphere_registered_users", JSON.stringify(demoAccounts));
+    } else {
+      try {
+        const parsedUsers = JSON.parse(existingUsers);
+        const safeUsers = Array.isArray(parsedUsers)
+          ? parsedUsers.filter((account) =>
+              typeof account?.email === "string" &&
+              ["user@blogsphere.com", "admin@blogsphere.com"].includes(account.email.toLowerCase())
+            )
+          : [];
+
+        if (safeUsers.length !== 2) {
+          localStorage.setItem("blogsphere_registered_users", JSON.stringify(demoAccounts));
+        }
+      } catch {
+        localStorage.setItem("blogsphere_registered_users", JSON.stringify(demoAccounts));
+      }
     }
 
     // Load active logged-in user from localStorage
     const savedCurrentUser = localStorage.getItem("blogsphere_current_user");
     if (savedCurrentUser && savedCurrentUser !== "null" && savedCurrentUser !== "undefined") {
       try {
-        setUser(JSON.parse(savedCurrentUser));
+        const parsedUser = JSON.parse(savedCurrentUser);
+        const isValidDemoUser =
+          parsedUser &&
+          typeof parsedUser.email === "string" &&
+          ["user@blogsphere.com", "admin@blogsphere.com"].includes(parsedUser.email.toLowerCase());
+
+        setUser(isValidDemoUser ? parsedUser : null);
+        if (!isValidDemoUser) {
+          localStorage.removeItem("blogsphere_current_user");
+        }
       } catch {
         setUser(null);
+        localStorage.removeItem("blogsphere_current_user");
       }
     } else {
       setUser(null);
@@ -102,7 +130,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const getRegisteredUsers = (): UserProfile[] => {
     try {
       const stored = localStorage.getItem("blogsphere_registered_users");
-      return stored ? JSON.parse(stored) : DEFAULT_ACCOUNTS;
+      if (!stored) return DEFAULT_ACCOUNTS;
+
+      const parsed = JSON.parse(stored);
+      if (!Array.isArray(parsed)) return DEFAULT_ACCOUNTS;
+
+      const filtered = parsed.filter(
+        (account) =>
+          account &&
+          typeof account.email === "string" &&
+          ["user@blogsphere.com", "admin@blogsphere.com"].includes(account.email.toLowerCase())
+      );
+
+      return filtered.length > 0 ? filtered : DEFAULT_ACCOUNTS;
     } catch {
       return DEFAULT_ACCOUNTS;
     }

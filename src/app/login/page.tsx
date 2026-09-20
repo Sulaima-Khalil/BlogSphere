@@ -37,6 +37,28 @@ export default function LoginPage() {
     }
   }
 
+  function loginDemoAccount(accountRole: "User" | "Admin") {
+    const demoEmail = accountRole === "Admin" ? "admin@blogsphere.com" : "user@blogsphere.com";
+    const demoPassword = accountRole === "Admin" ? "admin123" : "password123";
+
+    setRole(accountRole);
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    setErrorMessage("");
+
+    const res = login(demoEmail, demoPassword, accountRole);
+    if (!res.success) {
+      setErrorMessage(res.error || "Failed to log in.");
+      return;
+    }
+
+    if (accountRole === "Admin") {
+      router.push("/admin");
+    } else {
+      router.push("/profile");
+    }
+  }
+
   return (
     <section className="flex min-h-[calc(100vh-200px)] items-center justify-center px-4 py-12">
       <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
@@ -97,11 +119,28 @@ export default function LoginPage() {
           </button>
         </div>
 
+        <div className="mb-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => loginDemoAccount("User")}
+            className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm font-semibold text-primary hover:bg-primary/10 transition-colors"
+          >
+            Login as Demo User
+          </button>
+          <button
+            type="button"
+            onClick={() => loginDemoAccount("Admin")}
+            className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors"
+          >
+            Login as Demo Admin
+          </button>
+        </div>
+
         <form className="space-y-4" onSubmit={handleLogin}>
           <Input
             label="Email address"
             type="email"
-            placeholder={role === "Admin" ? "e.g. admin@blogsphere.com" : "e.g. user@blogsphere.com"}
+            placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />

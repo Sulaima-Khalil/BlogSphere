@@ -22,6 +22,7 @@ export default function Navbar() {
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -35,8 +36,14 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogoutRequest = () => {
+    setUserDropdownOpen(false);
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = () => {
     logout();
+    setShowLogoutModal(false);
     setUserDropdownOpen(false);
     router.push("/login");
   };
@@ -140,7 +147,7 @@ export default function Navbar() {
 
                   <div className="border-t border-gray-100 pt-1">
                     <button
-                      onClick={handleLogout}
+                      onClick={handleLogoutRequest}
                       className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
                     >
                       <LogOut className="h-4 w-4" />
@@ -223,7 +230,7 @@ export default function Navbar() {
                 className="w-full text-red-600 border-red-200 hover:bg-red-50"
                 onClick={() => {
                   setMobileOpen(false);
-                  handleLogout();
+                  setShowLogoutModal(true);
                 }}
               >
                 Logout
@@ -233,6 +240,38 @@ export default function Navbar() {
                 <Button className="w-full">Login</Button>
               </Link>
             )}
+          </div>
+        </div>
+      )}
+
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl space-y-4 border border-gray-100">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600 mx-auto">
+              <LogOut className="h-6 w-6" />
+            </div>
+            <div className="text-center">
+              <h3 className="text-lg font-bold text-gray-900">Logout Confirmation</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Are you sure you want to log out of your account?
+              </p>
+            </div>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(false)}
+                className="w-full rounded-xl border border-gray-300 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmLogout}
+                className="w-full rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-700 transition-colors"
+              >
+                Yes, Logout
+              </button>
+            </div>
           </div>
         </div>
       )}
