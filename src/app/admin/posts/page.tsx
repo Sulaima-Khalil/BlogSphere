@@ -1,6 +1,9 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Edit, Trash2, Eye, Plus } from "lucide-react";
-import { posts } from "@/lib/data";
+import { getAllPosts } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 import Table from "@/components/ui/Table";
 import Badge from "@/components/ui/Badge";
@@ -8,6 +11,11 @@ import Button from "@/components/ui/Button";
 import { Post } from "@/lib/types";
 
 export default function AdminPostsPage() {
+  const [postsList, setPostsList] = useState<Post[]>([]);
+
+  useEffect(() => {
+    setPostsList(getAllPosts());
+  }, []);
   return (
     <div>
       <div className="mb-8 flex items-center justify-between">
@@ -71,7 +79,7 @@ export default function AdminPostsPage() {
             ),
           },
         ]}
-        data={posts}
+        data={postsList}
       />
     </div>
   );

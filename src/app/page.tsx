@@ -1,11 +1,19 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getFeaturedPosts } from "@/lib/data";
 import PostCard from "@/components/posts/PostCard";
 import HeroSearch from "@/components/home/HeroSearch";
+import { Post } from "@/lib/types";
 
 export default function HomePage() {
-  const featuredPosts = getFeaturedPosts();
+  const [featuredPosts, setFeaturedPosts] = useState<Post[]>([]);
+
+  useEffect(() => {
+    setFeaturedPosts(getFeaturedPosts());
+  }, []);
 
   return (
     <>

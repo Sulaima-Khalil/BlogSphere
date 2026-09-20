@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import { getPostsByCategory } from "@/lib/data";
 import { categories } from "@/lib/utils";
@@ -9,12 +9,18 @@ import PostCardList from "@/components/posts/PostCardList";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { Post } from "@/lib/types";
 
 function BlogsContent() {
   const searchParams = useSearchParams();
   const { siteSettings } = useAuth();
   const activeCategory = searchParams.get("category") || "All";
-  const allFiltered = getPostsByCategory(activeCategory);
+  const [allFiltered, setAllFiltered] = useState<Post[]>([]);
+
+  useEffect(() => {
+    setAllFiltered(getPostsByCategory(activeCategory));
+  }, [activeCategory]);
+
   const displayPosts = allFiltered.slice(0, siteSettings.postsPerPage || 10);
   const bannerImage = displayPosts[0]?.featuredImage;
 

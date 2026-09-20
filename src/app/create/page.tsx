@@ -1,21 +1,52 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Upload, X, CheckCircle2, AlertCircle } from "lucide-react";
+import { Upload, X, CheckCircle2, AlertCircle, ShieldAlert } from "lucide-react";
 import { categories } from "@/lib/utils";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import RichTextEditor from "@/components/posts/RichTextEditor";
+import { useAuth } from "@/context/AuthContext";
+import { saveCustomPost } from "@/lib/data";
+import { Post } from "@/lib/types";
 
 export default function CreatePostPage() {
   const router = useRouter();
+  const { user } = useAuth();
+
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState(categories[0]);
   const [tags, setTags] = useState(["react", "web", "tutorial"]);
   const [tagInput, setTagInput] = useState("");
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Auth Guard: Block non-logged in users
+  if (!user) {
+    return (
+      <section className="container-custom py-16 text-center">
+        <div className="mx-auto max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 border border-amber-200">
+            <ShieldAlert className="h-7 w-7" />
+          </div>
+          <h2 className="mb-2 text-2xl font-bold text-gray-900">Login Required</h2>
+          <p className="mb-6 text-sm text-gray-600 leading-relaxed">
+            You must be logged in to create and publish articles or save drafts on BlogSphere.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Link href="/login">
+              <Button className="w-full">Log In to Continue</Button>
+            </Link>
+            <Link href="/register">
+              <Button variant="outline" className="w-full">Create an Account</Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -38,16 +69,48 @@ export default function CreatePostPage() {
     }
 
     setIsSubmitting(true);
+
+    const generatedSlug =
+      title
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)+/g, "") || `post-${Date.now()}`;
+
+    const newPost: Post = {
+      id: `custom-${Date.now()}`,
+      slug: generatedSlug,
+      title: title.trim(),
+      excerpt: title.trim() + " - Read more on BlogSphere.",
+      content: `<p>${title.trim()}</p><p>Welcome to this new story on BlogSphere! Thank you for reading.</p>`,
+      featuredImage: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=500&fit=crop",
+      category: category,
+      tags: tags,
+      author: {
+        id: user.id,
+        name: user.name,
+        avatar: user.avatar,
+        email: user.email,
+      },
+      publishedAt: new Date().toISOString().split("T")[0],
+      commentCount: 0,
+      status: isDraft ? "Draft" : "Published",
+      featured: true,
+    };
+
+    // Persist to localStorage
+    saveCustomPost(newPost);
+
     setNotification({
       type: "success",
       message: isDraft
-        ? "Draft saved successfully!"
-        : "Post published successfully! Redirecting to blogs...",
+        ? "Draft saved successfully! You can view it in your profile."
+        : "Post published successfully! Redirecting to All Blogs...",
     });
 
     setTimeout(() => {
       setIsSubmitting(false);
-      router.push("/blogs");
+      router.push(isDraft ? "/profile" : "/blogs");
     }, 1500);
   };
 
@@ -169,3 +232,4 @@ export default function CreatePostPage() {
     </section>
   );
 }
+

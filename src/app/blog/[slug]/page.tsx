@@ -1,4 +1,6 @@
-import { notFound } from "next/navigation";
+"use client";
+
+import { use, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { MessageCircle, ArrowLeft } from "lucide-react";
@@ -7,20 +9,46 @@ import { formatDate } from "@/lib/utils";
 import Badge from "@/components/ui/Badge";
 import CommentSection from "@/components/posts/CommentSection";
 import BlogPostActions from "@/components/posts/BlogPostActions";
+import { Post, Comment } from "@/lib/types";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export default async function BlogPostPage({ params }: BlogPostPageProps) {
-  const { slug } = await params;
-  const post = getPostBySlug(slug);
+export default function BlogPostPage({ params }: BlogPostPageProps) {
+  const { slug } = use(params);
+  const [post, setPost] = useState<Post | undefined>(undefined);
+  const [postComments, setPostComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  if (!post || post.status !== "Published") {
-    notFound();
+  useEffect(() => {
+    const foundPost = getPostBySlug(slug);
+    setPost(foundPost);
+    if (foundPost) {
+      setPostComments(getCommentsByPostId(foundPost.id));
+    }
+    setLoading(false);
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="container-custom py-20 text-center text-gray-500">
+        Loading article...
+      </div>
+    );
   }
 
-  const postComments = getCommentsByPostId(post.id);
+  if (!post || post.status !== "Published") {
+    return (
+      <div className="container-custom py-20 text-center">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Article Not Found</h2>
+        <p className="text-gray-600 mb-6">The post you are looking for does not exist or has been unpublished.</p>
+        <Link href="/blogs" className="inline-flex items-center gap-2 text-primary font-medium hover:underline">
+          <ArrowLeft className="h-4 w-4" /> Back to all blogs
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <article>
@@ -82,3 +110,4 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     </article>
   );
 }
+

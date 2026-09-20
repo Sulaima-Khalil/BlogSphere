@@ -288,24 +288,55 @@ export const users: User[] = [
   },
 ];
 
+export function getAllPosts(): Post[] {
+  if (typeof window === "undefined") return posts;
+  try {
+    const customPostsJson = localStorage.getItem("blogsphere_custom_posts");
+    if (!customPostsJson) return posts;
+    const customPosts: Post[] = JSON.parse(customPostsJson);
+    const customIds = new Set(customPosts.map((p) => p.id));
+    const staticFiltered = posts.filter((p) => !customIds.has(p.id));
+    return [...customPosts, ...staticFiltered];
+  } catch {
+    return posts;
+  }
+}
+
+export function saveCustomPost(post: Post): void {
+  if (typeof window === "undefined") return;
+  try {
+    const existingJson = localStorage.getItem("blogsphere_custom_posts");
+    const existing: Post[] = existingJson ? JSON.parse(existingJson) : [];
+    const filtered = existing.filter((p) => p.id !== post.id && p.slug !== post.slug);
+    const updated = [post, ...filtered];
+    localStorage.setItem("blogsphere_custom_posts", JSON.stringify(updated));
+  } catch (e) {
+    console.error("Failed to save post to localStorage", e);
+  }
+}
+
 export function getPostBySlug(slug: string): Post | undefined {
-  return posts.find((p) => p.slug === slug);
+  const all = getAllPosts();
+  return all.find((p) => p.slug === slug);
 }
 
 export function getFeaturedPosts(): Post[] {
-  return posts.filter((p) => p.featured && p.status === "Published");
+  const all = getAllPosts();
+  return all.filter((p) => p.featured && p.status === "Published");
 }
 
 export function getPostsByCategory(category: string): Post[] {
-  if (category === "All") return posts.filter((p) => p.status === "Published");
-  return posts.filter(
+  const all = getAllPosts();
+  if (category === "All") return all.filter((p) => p.status === "Published");
+  return all.filter(
     (p) => p.category === category && p.status === "Published"
   );
 }
 
 export function searchPosts(query: string): Post[] {
   const q = query.toLowerCase();
-  return posts.filter(
+  const all = getAllPosts();
+  return all.filter(
     (p) =>
       p.status === "Published" &&
       (p.title.toLowerCase().includes(q) ||
@@ -321,8 +352,10 @@ export function getCommentsByPostId(postId: string) {
 }
 
 export function getUserPosts(userId: string, status?: "Published" | "Draft") {
-  return posts.filter(
+  const all = getAllPosts();
+  return all.filter(
     (p) =>
-      p.author.id === userId && (status ? p.status === status : true)
+      (p.author.id === userId || (userId === "1" && (p.author.id === "demo-user-1" || p.author.id === "1"))) &&
+      (status ? p.status === status : true)
   );
 }
