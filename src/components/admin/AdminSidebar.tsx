@@ -194,17 +194,17 @@ export default function AdminSidebar() {
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl space-y-4 border border-gray-100">
+          <div className="relative mx-auto w-full max-w-sm rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600 mx-auto">
               <LogOut className="h-6 w-6" />
             </div>
-            <div className="text-center">
+            <div className="mt-4 text-center">
               <h3 className="text-lg font-bold text-gray-900">Logout Confirmation</h3>
               <p className="mt-1 text-sm text-gray-500">
                 Are you sure you want to log out of your admin account?
               </p>
             </div>
-            <div className="flex items-center gap-3 pt-2">
+            <div className="mt-5 flex items-center gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setShowLogoutModal(false)}
