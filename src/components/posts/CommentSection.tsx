@@ -14,9 +14,10 @@ import { useAuth } from "@/context/AuthContext";
 interface CommentSectionProps {
   comments: Comment[];
   postId: string;
+  onCommentCountChange?: (count: number) => void;
 }
 
-export default function CommentSection({ comments: initialComments, postId }: CommentSectionProps) {
+export default function CommentSection({ comments: initialComments, postId, onCommentCountChange }: CommentSectionProps) {
   const router = useRouter();
   const { user, siteSettings } = useAuth();
 
@@ -39,6 +40,10 @@ export default function CommentSection({ comments: initialComments, postId }: Co
   useEffect(() => {
     setCommentList(initialComments);
   }, [initialComments]);
+
+  useEffect(() => {
+    onCommentCountChange?.(commentList.length);
+  }, [commentList.length, onCommentCountChange]);
 
   useEffect(() => {
     setCurrentPage((page) => Math.min(page, totalPages));

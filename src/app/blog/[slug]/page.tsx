@@ -19,13 +19,19 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = use(params);
   const [post, setPost] = useState<Post | undefined>(undefined);
   const [postComments, setPostComments] = useState<Comment[]>([]);
+  const [commentCount, setCommentCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const foundPost = getPostBySlug(slug);
     setPost(foundPost);
     if (foundPost) {
-      setPostComments(getCommentsByPostId(foundPost.id));
+      const foundComments = getCommentsByPostId(foundPost.id);
+      setPostComments(foundComments);
+      setCommentCount(foundComments.length);
+    } else {
+      setPostComments([]);
+      setCommentCount(0);
     }
     setLoading(false);
   }, [slug]);
@@ -91,7 +97,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
               <span>{formatDate(post.publishedAt)}</span>
               <span className="flex items-center gap-1">
                 <MessageCircle className="h-4 w-4" />
-                {post.commentCount} comments
+                {commentCount} comments
               </span>
             </div>
           </div>
@@ -105,9 +111,12 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
 
-        <CommentSection comments={postComments} postId={post.id} />
+        <CommentSection
+          comments={postComments}
+          postId={post.id}
+          onCommentCountChange={setCommentCount}
+        />
       </div>
     </article>
   );
 }
-
