@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, Reply, Send, LogIn, AlertCircle, MessageSquareOff, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, Reply, Send, LogIn, AlertCircle, MessageSquareOff, ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react";
 import { Comment } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import Button from "@/components/ui/Button";
@@ -25,6 +25,8 @@ export default function CommentSection({ comments: initialComments, postId }: Co
   const [newCommentText, setNewCommentText] = useState("");
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const commentsPerPage = Math.max(1, siteSettings.postsPerPage);
@@ -99,6 +101,38 @@ export default function CommentSection({ comments: initialComments, postId }: Co
         prev.map((c) => (c.id === commentId ? { ...c, likes: c.likes + 1 } : c))
       );
     }
+  };
+
+  const canManageComment = (comment: Comment) =>
+    Boolean(user && (user.id === comment.author.id || user.role === "Admin"));
+
+  const startEditingComment = (comment: Comment) => {
+    setEditingCommentId(comment.id);
+    setEditText(comment.content);
+    setActiveReplyId(null);
+  };
+
+  const saveEditedComment = (commentId: string) => {
+    const content = editText.trim();
+    if (!content) return;
+
+    setCommentList((previousComments) =>
+      previousComments.map((comment) =>
+        comment.id === commentId ? { ...comment, content } : comment
+      )
+    );
+    setEditingCommentId(null);
+    setEditText("");
+  };
+
+  const deleteComment = (commentId: string) => {
+    if (!window.confirm("Delete this comment? This action cannot be undone.")) return;
+
+    setCommentList((previousComments) =>
+      previousComments.filter((comment) => comment.id !== commentId)
+    );
+    setEditingCommentId((currentId) => currentId === commentId ? null : currentId);
+    setActiveReplyId((currentId) => currentId === commentId ? null : currentId);
   };
 
   const handleSendReply = (commentId: string) => {
@@ -217,7 +251,34 @@ export default function CommentSection({ comments: initialComments, postId }: Co
                       {formatDate(comment.createdAt)}
                     </span>
                   </div>
-                  <p className="mb-3 text-gray-700 leading-relaxed">{comment.content}</p>
+                  {editingCommentId === comment.id ? (
+                    <div className="mb-3">
+                      <Textarea
+                        aria-label="Edit comment"
+                        rows={3}
+                        value={editText}
+                        onChange={(event) => setEditText(event.target.value)}
+                        className="bg-white"
+                      />
+                      <div className="mt-2 flex gap-2">
+                        <Button size="sm" onClick={() => saveEditedComment(comment.id)} disabled={!editText.trim()}>
+                          Save
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingCommentId(null);
+                            setEditText("");
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="mb-3 text-gray-700 leading-relaxed">{comment.content}</p>
+                  )}
                   
                   <div className="flex items-center gap-4">
                     {siteSettings.allowComments && (
@@ -247,6 +308,27 @@ export default function CommentSection({ comments: initialComments, postId }: Co
                       />
                       <span>{comment.likes}</span>
                     </button>
+
+                    {canManageComment(comment) && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => startEditingComment(comment)}
+                          className="flex items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-primary"
+                        >
+                          <Pencil className="h-4 w-4" />
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteComment(comment.id)}
+                          className="flex items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </button>
+                      </>
+                    )}
                   </div>
 
                   {/* Inline Reply Form */}
