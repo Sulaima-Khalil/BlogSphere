@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, Reply, Send, LogIn, AlertCircle, MessageSquareOff } from "lucide-react";
+import { Heart, Reply, Send, LogIn, AlertCircle, MessageSquareOff, ChevronLeft, ChevronRight } from "lucide-react";
 import { Comment } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import Button from "@/components/ui/Button";
@@ -16,7 +16,7 @@ interface CommentSectionProps {
   postId: string;
 }
 
-export default function CommentSection({ comments: initialComments }: CommentSectionProps) {
+export default function CommentSection({ comments: initialComments, postId }: CommentSectionProps) {
   const router = useRouter();
   const { user, siteSettings } = useAuth();
 
@@ -26,6 +26,25 @@ export default function CommentSection({ comments: initialComments }: CommentSec
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [authNotice, setAuthNotice] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const commentsPerPage = Math.max(1, siteSettings.postsPerPage);
+  const totalPages = Math.max(1, Math.ceil(commentList.length / commentsPerPage));
+  const visibleComments = useMemo(
+    () => commentList.slice((currentPage - 1) * commentsPerPage, currentPage * commentsPerPage),
+    [commentList, commentsPerPage, currentPage]
+  );
+
+  useEffect(() => {
+    setCommentList(initialComments);
+  }, [initialComments]);
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [commentsPerPage]);
 
   const requireAuth = (actionName: string): boolean => {
     if (!user) {
@@ -44,7 +63,7 @@ export default function CommentSection({ comments: initialComments }: CommentSec
 
     const newComment: Comment = {
       id: Date.now().toString(),
-      postId: "1",
+      postId,
       postTitle: "",
       author: {
         id: user!.id,
@@ -57,7 +76,8 @@ export default function CommentSection({ comments: initialComments }: CommentSec
       status: "Approved",
     };
 
-    setCommentList([newComment, ...commentList]);
+    setCommentList((previousComments) => [newComment, ...previousComments]);
+    setCurrentPage(1);
     setNewCommentText("");
   };
 
@@ -88,7 +108,7 @@ export default function CommentSection({ comments: initialComments }: CommentSec
 
     const replyComment: Comment = {
       id: Date.now().toString(),
-      postId: commentId,
+      postId,
       postTitle: "",
       author: {
         id: user!.id,
@@ -101,7 +121,7 @@ export default function CommentSection({ comments: initialComments }: CommentSec
       status: "Approved",
     };
 
-    setCommentList([...commentList, replyComment]);
+    setCommentList((previousComments) => [...previousComments, replyComment]);
     setReplyText("");
     setActiveReplyId(null);
   };
@@ -175,7 +195,7 @@ export default function CommentSection({ comments: initialComments }: CommentSec
 
       {/* Comment List */}
       <div className="space-y-6">
-        {commentList.map((comment) => {
+        {visibleComments.map((comment) => {
           const isLiked = likedCommentIds.includes(comment.id);
 
           return (
@@ -251,6 +271,35 @@ export default function CommentSection({ comments: initialComments }: CommentSec
           );
         })}
       </div>
+
+      {commentList.length > 0 && (
+        <div className="mt-6 flex flex-col items-center justify-between gap-3 border-t border-gray-200 pt-5 text-sm text-gray-600 sm:flex-row">
+          <span>
+            Showing {(currentPage - 1) * commentsPerPage + 1}-{Math.min(currentPage * commentsPerPage, commentList.length)} of {commentList.length} comments
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              disabled={currentPage === 1}
+              aria-label="Previous comments page"
+              className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 font-medium transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <ChevronLeft className="h-4 w-4" /> Previous
+            </button>
+            <span className="whitespace-nowrap">Page {currentPage} of {totalPages}</span>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+              disabled={currentPage === totalPages}
+              aria-label="Next comments page"
+              className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 font-medium transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Next <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

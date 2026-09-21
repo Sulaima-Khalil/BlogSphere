@@ -1,22 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { FileText, Users, MessageSquare, Plus, Trash2, Eye, Edit3 } from "lucide-react";
+import { FileText, Users, MessageSquare, Plus, Trash2, Eye, Edit3, ChevronLeft, ChevronRight } from "lucide-react";
 import { deleteCustomPost, getAllPosts, users, comments } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 import Table from "@/components/ui/Table";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import { Post, User } from "@/lib/types";
+import { useAuth } from "@/context/AuthContext";
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<"posts" | "users" | "comments">("posts");
   const [postsList, setPostsList] = useState<Post[]>([]);
+  const [commentsPage, setCommentsPage] = useState(1);
+  const { siteSettings } = useAuth();
+  const commentsPerPage = Math.max(1, siteSettings.postsPerPage);
+  const commentsTotalPages = Math.max(1, Math.ceil(comments.length / commentsPerPage));
+  const visibleComments = useMemo(
+    () => comments.slice((commentsPage - 1) * commentsPerPage, commentsPage * commentsPerPage),
+    [commentsPage, commentsPerPage]
+  );
 
   useEffect(() => {
     setPostsList(getAllPosts());
   }, []);
+
+  useEffect(() => {
+    setCommentsPage(1);
+  }, [commentsPerPage]);
 
   const handleDeletePost = (id: string) => {
     deleteCustomPost(id);
@@ -178,7 +191,7 @@ export default function AdminDashboardPage() {
         <div className="space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">Recent Comments</h2>
           <div className="space-y-3">
-            {comments.map((c) => (
+            {visibleComments.map((c) => (
               <div
                 key={c.id}
                 className="flex items-start justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
@@ -196,6 +209,32 @@ export default function AdminDashboardPage() {
               </div>
             ))}
           </div>
+          {comments.length > 0 && (
+            <div className="flex flex-col items-center justify-between gap-3 border-t border-gray-200 pt-5 text-sm text-gray-600 sm:flex-row">
+              <span>
+                Showing {(commentsPage - 1) * commentsPerPage + 1}-{Math.min(commentsPage * commentsPerPage, comments.length)} of {comments.length} comments
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCommentsPage((page) => Math.max(1, page - 1))}
+                  disabled={commentsPage === 1}
+                  className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 font-medium transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <ChevronLeft className="h-4 w-4" /> Previous
+                </button>
+                <span className="whitespace-nowrap">Page {commentsPage} of {commentsTotalPages}</span>
+                <button
+                  type="button"
+                  onClick={() => setCommentsPage((page) => Math.min(commentsTotalPages, page + 1))}
+                  disabled={commentsPage === commentsTotalPages}
+                  className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 font-medium transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Next <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

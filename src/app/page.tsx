@@ -3,16 +3,16 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { getFeaturedPosts } from "@/lib/data";
+import { getPostsByCategory } from "@/lib/data";
 import PostCard from "@/components/posts/PostCard";
 import HeroSearch from "@/components/home/HeroSearch";
 import { Post } from "@/lib/types";
 
 export default function HomePage() {
-  const [featuredPosts, setFeaturedPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
-    setFeaturedPosts(getFeaturedPosts());
+    setPosts(getPostsByCategory("All"));
   }, []);
 
   return (
@@ -51,12 +51,14 @@ export default function HomePage() {
             href="/blogs"
             className="text-sm font-medium text-primary hover:underline"
           >
-            View all
+            View more
           </Link>
         </div>
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {featuredPosts.map((post) => (
-            <PostCard key={post.id} post={post} />
+        <div className="grid gap-8 md:grid-cols-3 lg:grid-cols-4">
+          {posts.slice(0, 4).map((post, index) => (
+            <div key={post.id} className={index === 3 ? "hidden lg:block" : undefined}>
+              <PostCard post={post} />
+            </div>
           ))}
         </div>
       </section>
