@@ -1,4 +1,5 @@
-import { Post, Comment, User } from "./types";
+import { Post, Comment, User, Category } from "./types";
+import { categories as defaultCategories } from "./utils";
 
 export const authors = {
   sarah: {
@@ -341,6 +342,75 @@ export function deleteCustomPost(postId: string): void {
   }
 }
 
+function saveAllPostsAsCustom(postsToSave: Post[]): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("blogsphere_custom_posts", JSON.stringify(postsToSave));
+}
+
+export function renameTagInPosts(oldTag: string, newTag: string): void {
+  const normalizedTag = newTag.trim();
+  if (!normalizedTag || oldTag === normalizedTag) return;
+
+  saveAllPostsAsCustom(
+    getAllPosts().map((post) => ({
+      ...post,
+      tags: post.tags.map((tag) => (tag === oldTag ? normalizedTag : tag)),
+    }))
+  );
+}
+
+export function removeTagFromPosts(tagToRemove: string): void {
+  saveAllPostsAsCustom(
+    getAllPosts().map((post) => ({
+      ...post,
+      tags: post.tags.filter((tag) => tag !== tagToRemove),
+    }))
+  );
+}
+
+export function getCategories(): Category[] {
+  if (typeof window === "undefined") return defaultCategories;
+  try {
+    const savedCategories = localStorage.getItem("blogsphere_categories");
+    const parsedCategories = savedCategories ? JSON.parse(savedCategories) : null;
+    return Array.isArray(parsedCategories) && parsedCategories.length > 0
+      ? parsedCategories.filter((category): category is string => typeof category === "string" && category.trim().length > 0)
+      : defaultCategories;
+  } catch {
+    return defaultCategories;
+  }
+}
+
+function saveCategories(categoriesToSave: Category[]): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("blogsphere_categories", JSON.stringify(categoriesToSave));
+}
+
+export function renameCategoryInPosts(oldCategory: Category, newCategory: Category): void {
+  const nextCategory = newCategory.trim();
+  if (!nextCategory || oldCategory === nextCategory) return;
+
+  saveAllPostsAsCustom(
+    getAllPosts().map((post) => ({
+      ...post,
+      category: post.category === oldCategory ? nextCategory : post.category,
+    }))
+  );
+  saveCategories(getCategories().map((category) => category === oldCategory ? nextCategory : category));
+}
+
+export function removeCategoryFromPosts(categoryToRemove: Category, replacementCategory: Category): void {
+  if (categoryToRemove === replacementCategory) return;
+
+  saveAllPostsAsCustom(
+    getAllPosts().map((post) => ({
+      ...post,
+      category: post.category === categoryToRemove ? replacementCategory : post.category,
+    }))
+  );
+  saveCategories(getCategories().filter((category) => category !== categoryToRemove));
+}
+
 export function getPostBySlug(slug: string): Post | undefined {
   const all = getAllPosts();
   return all.find((p) => p.slug === slug);
@@ -348,7 +418,15 @@ export function getPostBySlug(slug: string): Post | undefined {
 
 export function getFeaturedPosts(): Post[] {
   const all = getAllPosts();
-  return all.filter((p) => p.featured && p.status === "Published");
+  const featuredPosts = all.filter(
+    (p) => p.featured && p.status === "Published"
+  );
+
+  // Custom posts stored in the browser can replace an original featured post.
+  // Keep the homepage populated if none of the resulting posts is featured.
+  return featuredPosts.length > 0
+    ? featuredPosts
+    : all.filter((p) => p.status === "Published").slice(0, 3);
 }
 
 export function getPostsByCategory(category: string): Post[] {

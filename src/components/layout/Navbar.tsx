@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { Search, Menu, X, PlusCircle, User, LogOut, ShieldCheck, ChevronDown } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/context/AuthContext";
 
@@ -244,9 +245,9 @@ export default function Navbar() {
         </div>
       )}
 
-      {showLogoutModal && (
+      {showLogoutModal && createPortal(
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="relative mx-auto w-full max-w-sm rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-sm rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600 mx-auto">
               <LogOut className="h-6 w-6" />
             </div>
@@ -273,7 +274,8 @@ export default function Navbar() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </header>
   );

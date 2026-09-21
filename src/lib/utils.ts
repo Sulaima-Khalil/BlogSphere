@@ -8,7 +8,7 @@ export const categories: Category[] = [
   "Business",
 ];
 
-export const categoryColors: Record<Category, string> = {
+export const categoryColors: Record<string, string> = {
   Technology: "bg-teal-100 text-teal-800",
   Lifestyle: "bg-yellow-100 text-yellow-800",
   Programming: "bg-blue-100 text-blue-800",

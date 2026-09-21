@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import { Edit, Trash2, Plus } from "lucide-react";
 import { users } from "@/lib/data";

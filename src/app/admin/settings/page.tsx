@@ -42,7 +42,7 @@ export default function AdminSettingsPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Posts per page</label>
+            <label className="block text-sm font-medium text-gray-700">Admin table rows per page</label>
             <select
               value={siteSettings.postsPerPage}
               onChange={(e) => updateSiteSettings({ postsPerPage: Number(e.target.value) })}

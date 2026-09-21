@@ -9,8 +9,8 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import RichTextEditor from "@/components/posts/RichTextEditor";
 import { useAuth } from "@/context/AuthContext";
-import { getAllPosts, saveCustomPost, updateCustomPost } from "@/lib/data";
-import { Post } from "@/lib/types";
+import { getAllPosts, getCategories, saveCustomPost, updateCustomPost } from "@/lib/data";
+import { Category, Post } from "@/lib/types";
 
 function CreatePostForm() {
   const router = useRouter();
@@ -19,6 +19,7 @@ function CreatePostForm() {
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState(categories[0]);
+  const [categoryOptions, setCategoryOptions] = useState<Category[]>(categories);
   const [tags, setTags] = useState(["react", "web", "tutorial"]);
   const [tagInput, setTagInput] = useState("");
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -26,6 +27,12 @@ function CreatePostForm() {
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
 
   useEffect(() => {
+    const savedCategories = getCategories();
+    setCategoryOptions(savedCategories);
+    setCategory((currentCategory) =>
+      savedCategories.includes(currentCategory) ? currentCategory : savedCategories[0]
+    );
+
     const editSlug = searchParams.get("edit");
     if (!editSlug || !user) {
       setEditingPostId(null);
@@ -196,10 +203,10 @@ function CreatePostForm() {
             </label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value as (typeof categories)[number])}
+              onChange={(e) => setCategory(e.target.value)}
               className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white"
             >
-              {categories.map((cat) => (
+              {categoryOptions.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}
                 </option>
@@ -279,4 +286,3 @@ export default function CreatePostPage() {
     </Suspense>
   );
 }
-

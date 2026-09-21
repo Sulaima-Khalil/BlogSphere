@@ -3,25 +3,24 @@
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
-import { getPostsByCategory } from "@/lib/data";
-import { categories } from "@/lib/utils";
+import { getCategories, getPostsByCategory } from "@/lib/data";
 import PostCardList from "@/components/posts/PostCardList";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
-import { Post } from "@/lib/types";
+import { Category, Post } from "@/lib/types";
 
 function BlogsContent() {
   const searchParams = useSearchParams();
-  const { siteSettings } = useAuth();
   const activeCategory = searchParams.get("category") || "All";
   const [allFiltered, setAllFiltered] = useState<Post[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<Category[]>([]);
 
   useEffect(() => {
     setAllFiltered(getPostsByCategory(activeCategory));
+    setCategoryOptions(getCategories());
   }, [activeCategory]);
 
-  const displayPosts = allFiltered.slice(0, siteSettings.postsPerPage || 10);
+  const displayPosts = allFiltered;
   const bannerImage = displayPosts[0]?.featuredImage;
 
   return (
@@ -52,7 +51,7 @@ function BlogsContent() {
       {/* Category Filters */}
       <section className="container-custom py-8">
         <div className="mb-8 flex flex-wrap gap-2">
-          {["All", ...categories].map((cat) => (
+          {["All", ...categoryOptions].map((cat) => (
             <Link
               key={cat}
               href={cat === "All" ? "/blogs" : `/blogs?category=${cat}`}

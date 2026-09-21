@@ -1,9 +1,4 @@
-export type Category =
-  | "Technology"
-  | "Lifestyle"
-  | "Programming"
-  | "Design"
-  | "Business";
+export type Category = string;
 
 export type PostStatus = "Published" | "Draft";
 

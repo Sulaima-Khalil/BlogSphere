@@ -30,7 +30,7 @@ export default function Badge({
   const text = label || category || status || "";
   const colorClass =
     variant === "category" && category
-      ? categoryColors[category]
+      ? categoryColors[category] || "bg-gray-100 text-gray-700"
       : status
         ? statusColors[status]
         : "bg-gray-100 text-gray-700";
